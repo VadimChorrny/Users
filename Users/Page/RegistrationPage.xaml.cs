@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -43,6 +44,38 @@ namespace Users.Page
             // create sql connection class
             conn = fact.CreateConnection();
             conn.ConnectionString = cs;
+            EncryptConnectionString("Users");
+        }
+
+        static string ComputeSha256Hash(string rawData)
+        {
+            // Create a SHA256   
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // ComputeHash - returns byte array  
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+                // Convert byte array to a string   
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
+
+        private void EncryptConnectionString(string name)
+        {
+            Configuration objConfig = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetEntryAssembly().Location); //GetAppPath() + "config_encryptions.exe");
+            MessageBox.Show($"{System.Reflection.Assembly.GetEntryAssembly().Location}, {System.Reflection.Assembly.GetEntryAssembly()}");
+            ConnectionStringsSection conSringSection = (ConnectionStringsSection)objConfig.GetSection(name);
+            if (!conSringSection.SectionInformation.IsProtected)
+            {
+                conSringSection.SectionInformation.ProtectSection("MyProtectionProvider");
+                conSringSection.SectionInformation.ForceSave = true;
+                objConfig.Save(ConfigurationSaveMode.Modified);
+            }
         }
 
         private void Registration(string login,string pass,bool isAdmin)

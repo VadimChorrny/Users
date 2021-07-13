@@ -43,6 +43,7 @@ namespace Users.Page
             // create sql connection class
             conn = fact.CreateConnection();
             conn.ConnectionString = cs;
+            LoadAllUsers();
         }
 
         private void LoadAllUsers()
